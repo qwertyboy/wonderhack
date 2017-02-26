@@ -60,16 +60,14 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 // array of function pointers
 typedef uint32_t (* formulaArrayType) (uint32_t t);
 
+// sound functions! theyre numbered weird because eric
 uint32_t form1(uint32_t t) {return (t&t>>6)|(t>>2)%256;}
 uint32_t form2(uint32_t t) {return 2*t&((t>>4)|(t>>14))%128;}
-
-
 uint32_t form5(uint32_t t) {return t * ((t>>3|t>>9)&64&t>>2);}
 uint32_t form6(uint32_t t) {return 7*(t%((t>>13)&(t>>6)));}
 uint32_t form7(uint32_t t) {return (t*5&t>>7)|(t*3&t>>10);}
 uint32_t form8(uint32_t t) {return (t*t/256)&( t>>((t/1024)%16));}
 uint32_t form9(uint32_t t) {return (t*t/128)&(t>>((t/256)%16));}
-
 uint32_t form11(uint32_t t) {return 2*((t&2*t>>16)|(t&2*t>>8))%128;}
 uint32_t form12(uint32_t t) {return 2*(t*(t>>10|t>>5)&16);}
 uint32_t form13(uint32_t t) {return 2*(2*t*(t>>14|t>>12)&16);}
@@ -103,6 +101,7 @@ void setup(void){
 
 
 void loop(void) {
+    // create arrays of sound functions
     formulaArrayType formArray1[] = {
         form1, form2, form5, form7,
         form11, form15, form16
@@ -150,22 +149,26 @@ void loop(void) {
                 oddNibbleSum += uidNibbles[i + 1];
             }
 
-            Serial.println(evenNibbleSum);
-            Serial.println(oddNibbleSum);
+            // calculate sound array indicies
+            uint8_t array1ID = evenNibbleSum % 7;
+            uint8_t array2ID = oddNibbleSum % 7;
 
-            Serial.println("Playing something!");
+            Serial.print("Playing something using values of ");
+            Serial.print(evenNibbleSum & 7);
+            Serial.print(" and ");
+            Serial.println(oddNibbleSum & 7);
+
             for(uint32_t t = 0; t < 10 * 11025; t++){
                 uint32_t val = 0;
 
                 // fetch our formulas
-                val = formArray1[evenNibbleSum % 7](t);
-                val += formArray2[oddNibbleSum % 7](t);
+                val = formArray1[array1ID](t);
+                val += formArray2[array2ID](t);
 
-                // send to dac
+                // send to dac and wait for next cycle
                 analogWrite(A14, val);
                 delayMicroseconds(RATE_11K);
             }
-
         }
     }
 }
