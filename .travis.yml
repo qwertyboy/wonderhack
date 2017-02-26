@@ -60,4 +60,4 @@ install:
     - pip install -U platformio
 
 script:
-    - platformio ci --lib="." --lib="wonderhack/lib/Adafruit_PN532" --lib="wonderhack/src" --board=teensy31 -v
+    - platformio ci --lib="." --lib="lib/Adafruit_PN532" --board=teensy31 -v
