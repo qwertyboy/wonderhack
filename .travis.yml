@@ -54,7 +54,7 @@ cache:
         - "~/.platformio"
 
 env:
-    - PLATFORMIO_CI_SRC=wonderhack/src/main.cpp
+    - PLATFORMIO_CI_SRC=main.cpp
 
 install:
     - pip install -U platformio
