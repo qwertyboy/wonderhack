@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/qwertyboy/wonderhack.svg?branch=master)](https://travis-ci.org/qwertyboy/wonderhack)
 #NF Sound
 ##Created for Winter Wonderhack 2017!
 
