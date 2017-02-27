@@ -144,7 +144,7 @@ void loop(void) {
             // used for picking two formulas to play
             uint8_t evenNibbleSum = 0;
             uint8_t oddNibbleSum = 0;
-            for(uint8_t i = 0; i < uidLength; i+=2){
+            for(uint8_t i = 0; i < uidLength * 2; i+=2){
                 evenNibbleSum += uidNibbles[i];
                 oddNibbleSum += uidNibbles[i + 1];
             }
@@ -154,11 +154,11 @@ void loop(void) {
             uint8_t array2ID = oddNibbleSum % 7;
 
             Serial.print("Playing something using values of ");
-            Serial.print(evenNibbleSum & 7);
+            Serial.print(array1ID);
             Serial.print(" and ");
-            Serial.println(oddNibbleSum & 7);
+            Serial.println(array2ID);
 
-            for(uint32_t t = 0; t < 10 * 11025; t++){
+            for(uint32_t t = 0; t < 30 * 11025; t++){
                 uint32_t val = 0;
 
                 // fetch our formulas
