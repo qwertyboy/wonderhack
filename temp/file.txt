@@ -1,3 +1,12 @@
+The numbers refer to the sound formulas used in the main program. They are
+numbered in music.txt as well. This was created to determine which formulas
+played nicely with each other.
+
+The numbers in parentheses are the functions that work well with the first
+one listed. The numbers outside the parentheses should not be mixed with
+the first number. For instance, function #1 should not be mixed with #5, #7,
+or #16 but does work well with #6, #12, #14, and #17.
+
 1 - 5,7,16 (6,12,14,17)
 2 - 5,7,11,16 (12,14,15,17)
 

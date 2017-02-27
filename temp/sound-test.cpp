@@ -1,3 +1,8 @@
+/*
+    This is just a test program written to see if the sound functions
+    would actually work on hardware.
+*/
+
 #include <Arduino.h>
 
 #define ANALOG_RES 8
@@ -64,21 +69,9 @@ void loop(){
     uint8_t sineIndex2 = 0;
 
     while(1){
-        static uint32_t oldTime1 = 0;
-        static uint32_t oldTime2 = 0;
-        uint32_t time = micros();
-
-        if(time - oldTime1 > freq1){
-            oldTime1 = time;
-            saw1 = sineWave[sineIndex1++];
-        }
-
-        if(time - oldTime2 > freq2){
-            oldTime2 = time;
-            saw2++;
-        }
-
-        analogWrite(A14, saw1+saw2);
+        static uint32_t i = 0;
+        analogWrite(A14, melody1(i++));
+        delayMicroseconds(RATE_44K);
     }
 }
 

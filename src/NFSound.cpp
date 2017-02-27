@@ -1,37 +1,25 @@
 /**************************************************************************/
 /*!
-    @file     readMifare.pde
-    @author   Adafruit Industries
+    @file     NFSound.cpp
+    @author   Nathan Duprey, Jordan Gagnon, Eric Stefanko
 	@license  BSD (see license.txt)
 
-    This example will wait for any ISO14443A card or tag, and
-    depending on the size of the UID will attempt to read from it.
+    This code generates music based on an RFID card's UID. It is meant to
+    run on a Teensy 3.2 board attached to Adafruit's PN532 NFC/RFID shield
+    using I2C. The Teensy is required because it's internal DAC is used
+    for sound output.
 
-    If the card has a 4-byte UID it is probably a Mifare
-    Classic card, and the following steps are taken:
+    The code works by waiting for a RFID card to be detected. Once available,
+    the card's UID is split up into nibbles. The even and odd nibbles are
+    used to pick two values between 0 and 6. These values are then used to
+    pick two of the sound generating functions to be added together. Finally,
+    a counter is fed into the two functions and their output is sent directly
+    to the Teensy's DAC.
 
-    - Authenticate block 4 (the first block of Sector 1) using
-      the default KEYA of 0XFF 0XFF 0XFF 0XFF 0XFF 0XFF
-    - If authentication succeeds, we can then read any of the
-      4 blocks in that sector (though only block 4 is read here)
-
-    If the card has a 7-byte UID it is probably a Mifare
-    Ultralight card, and the 4 byte pages can be read directly.
-    Page 4 is read by default since this is the first 'general-
-    purpose' page on the tags.
-
-
-This is an example sketch for the Adafruit PN532 NFC/RFID breakout boards
-This library works with the Adafruit NFC breakout
-  ----> https://www.adafruit.com/products/364
-
-Check out the links above for our tutorials and wiring diagrams
-These chips use SPI or I2C to communicate.
-
-Adafruit invests time and resources providing this open source code,
-please support Adafruit and open-source hardware by purchasing
-products from Adafruit!
-
+    This started life as an example sketch from Adafruit's library for their
+    shield, but most of it was removed and only the UID extraction part was
+    kept. More information on the shield is available at the link below.
+        ----> https://learn.adafruit.com/adafruit-pn532-rfid-nfc/overview
 */
 /**************************************************************************/
 #include <Arduino.h>
@@ -41,18 +29,25 @@ products from Adafruit!
 
 // If using the breakout or shield with I2C, define just the pins connected
 // to the IRQ and reset lines.  Use the values below (2, 3) for the shield!
-#define PN532_IRQ   (2)
-#define PN532_RESET (3)  // Not connected by default on the NFC Shield
+#define PN532_IRQ   2
+#define PN532_RESET 3   // Not connected by default on the NFC Shield
 
 // DAC output defines
 #define ANALOG_RES 8
 
 // specific sample rates for the different melodies
 // values are microsecond delays
-#define RATE_44K 22
-#define RATE_22K 45
-#define RATE_11K 90 // or 91
-#define RATE_8K 125
+#define DELAY_44K 22
+#define DELAY_22K 45
+#define DELAY_11K 90 // or 91
+#define DELAY_8K 125
+// sample rates
+#define RATE_44K 44100
+#define RATE_22K 22050
+#define RATE_11K 11025
+#define RATE_8K 8000
+// song duration
+#define DURATION 10
 
 // Or use this line for a breakout or shield with an I2C connection:
 Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
@@ -77,6 +72,7 @@ uint32_t form16(uint32_t t) {return 2*(t*(3*t>>4|2*t>>10)&32);}
 uint32_t form17(uint32_t t) {return 8*(t*(t>>14|t>>10)&8);}
 
 void setup(void){
+    // set DAC to 8-bits
     analogWriteResolution(ANALOG_RES);
 
     while(!Serial);
@@ -86,7 +82,7 @@ void setup(void){
     nfc.begin();
 
     uint32_t versiondata = nfc.getFirmwareVersion();
-    if (! versiondata) {
+    if(!versiondata){
         Serial.print("Didn't find PN53x board");
         while (1); // halt
     }
@@ -124,7 +120,7 @@ void loop(void) {
         Serial.println("Waiting for an ISO14443A Card ...");
         success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
 
-        if (success) {
+        if(success){
             // Display some basic information about the card
             Serial.println("Found an ISO14443A card");
             Serial.print("  UID Length: ");Serial.print(uidLength, DEC);Serial.println(" bytes");
@@ -140,7 +136,7 @@ void loop(void) {
                 uidNibbles[nibbleIndex++] = byte & 0x0F;
             }
 
-            // get sums for the top and bottom half of nibbles
+            // get sums for the even and odd half of nibbles
             // used for picking two formulas to play
             uint8_t evenNibbleSum = 0;
             uint8_t oddNibbleSum = 0;
@@ -158,7 +154,7 @@ void loop(void) {
             Serial.print(" and ");
             Serial.println(array2ID);
 
-            for(uint32_t t = 0; t < 30 * 11025; t++){
+            for(uint32_t t = 0; t < (DURATION * RATE_11K); t++){
                 uint32_t val = 0;
 
                 // fetch our formulas
@@ -167,7 +163,7 @@ void loop(void) {
 
                 // send to dac and wait for next cycle
                 analogWrite(A14, val);
-                delayMicroseconds(RATE_11K);
+                delayMicroseconds(DELAY_11K);
             }
         }
     }
